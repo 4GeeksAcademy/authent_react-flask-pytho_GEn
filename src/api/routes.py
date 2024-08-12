@@ -6,17 +6,48 @@ from api.models import db, User
 from api.utils import generate_sitemap, APIException
 from flask_cors import CORS
 
+import app 
+
+
 api = Blueprint('api', __name__)
 
 # Allow CORS requests to this API
 CORS(api)
 
 
-@api.route('/hello', methods=['POST', 'GET'])
-def handle_hello():
+# @api.route('/login', methods=['POST', 'GET'])
+# def handle_hello():
 
-    response_body = {
-        "message": "Hello! I'm a message that came from the backend, check the network tab on the google inspector and you will see the GET request"
-    }
+#     response_body = {
+#         "message": "Hello! I'm a message that came from the backend, check the network tab on the google inspector and you will see the GET request"
+#     }
 
-    return jsonify(response_body), 200
+#     return jsonify(response_body), 200
+
+
+@api.route('/signup', methods=['POST'])
+def Signup1():
+     data = request.json
+     respuesta = app.Signup(data)
+     return jsonify({"Message" : respuesta}),200
+
+@api.route('/login', methods=['POST'])
+def Login1():
+     data = request.json
+     print("Data dentro de Login1",data)
+     respuesta = app.Login(data)
+     print(respuesta)
+     return jsonify({"Message" : respuesta}),201
+
+@api.route('/private/<int:id>', methods=['GET'])
+def Private1(id):
+    valor = app.Private(id)
+    return jsonify(
+        {
+            "usuario":{
+                "email" : valor.email,
+                "password" : valor.password,
+                "is_active" : valor.is_active,
+            }
+        }
+    ),200

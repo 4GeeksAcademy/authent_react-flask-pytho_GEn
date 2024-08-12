@@ -6,10 +6,12 @@ from flask import Flask, request, jsonify, url_for, send_from_directory
 from flask_migrate import Migrate
 from flask_swagger import swagger
 from api.utils import APIException, generate_sitemap
-from api.models import db
+from api.models import db, User
+import api.models as db_
 from api.routes import api
 from api.admin import setup_admin
 from api.commands import setup_commands
+from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required, JWTManager
 
 # from models import Person
 
@@ -30,6 +32,10 @@ else:
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 MIGRATE = Migrate(app, db, compare_type=True)
 db.init_app(app)
+
+#JWT Config
+app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")
+jwt = JWTManager(app)
 
 # add the admin
 setup_admin(app)
@@ -56,9 +62,65 @@ def sitemap():
         return generate_sitemap(app)
     return send_from_directory(static_file_dir, 'index.html')
 
+#@app.route('/signup', methods=['POST'])
+def Signup(data):
+    #data = request.json
+    new_user = User()
+    new_user.email = data.get("email")
+    new_user.password = data.get("password")
+    new_user.is_active = bool(data.get("is_active"))
+    if new_user.email == "" or new_user.password == "" :
+        response_body = {"message": "email and password are required"}
+        return response_body
+    else:
+        user_result = db.session.execute(db.select(User).filter_by(email=new_user.email)).one_or_none()
+        if user_result != None and user_result[0].email == new_user.email:
+            response_body = {"message": "Usuario ya existe"}
+            return response_body
+        else:
+            db.session.add(new_user)
+            db.session.commit()
+            response_body = {"message": "Usuario creado con Exito"}
+            return response_body
+
+
+def Login(data):
+    new_user = User()
+    print("Newuser dentro de Login",new_user.email)
+    new_user.email = data.get("email")
+    new_user.password = data.get("password")
+
+    if new_user.email == "" or new_user.password == "" :
+        response_body = {"message": "email and password are required"}
+        return response_body
+    else:
+        user_result = db.session.execute(db.select(User).filter_by(email=data.get("email"))).one_or_none()
+        user_result = user_result[0]
+        passwd_is_ok = user_result.password == new_user.password
+        if not passwd_is_ok:
+            response_body = {"message": "Password incorrecto"}
+            return response_body
+        token = create_access_token(identity=user_result.id)
+        response_body = {"token": token}
+        return response_body
+
+# @app.route('/private/<int:id>', methods=['GET'])
+# @jwt_required()
+def Private(id):
+    
+    #user_id = get_jwt_identity()
+    #print(id, user_id)
+    # if id != user_id : 
+    #     return jsonify({"message":"Usuario no autorizado"})
+
+    # user_result = db.session.execute(db.select(User).filter_by(id=user_id)).one_or_none()
+    user_result = db.session.execute(db.select(db_.User).filter_by(id=id)).one_or_none()
+    user_result = user_result[0]
+    print("valor de user_result",user_result )
+    return user_result
+
+
 # any other endpoint will try to serve it like a static file
-
-
 @app.route('/<path:path>', methods=['GET'])
 def serve_any_other_file(path):
     if not os.path.isfile(os.path.join(static_file_dir, path)):
