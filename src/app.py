@@ -64,7 +64,7 @@ def sitemap():
 
 #@app.route('/signup', methods=['POST'])
 def Signup(data):
-    #data = request.json
+    print("valores recibidos de data",data)
     new_user = User()
     new_user.email = data.get("email")
     new_user.password = data.get("password")

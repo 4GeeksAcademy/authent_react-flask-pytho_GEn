@@ -1,3 +1,5 @@
+
+
 const getState = ({ getStore, getActions, setStore }) => {
 	return {
 		store: {
@@ -17,28 +19,45 @@ const getState = ({ getStore, getActions, setStore }) => {
 			]
 		},
 		actions: {
+			fetchWithCheck: async (url, options = {}) => {
+                try {
+                    const response = await fetch(url, options);
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(JSON.stringify(errorData));
+                    }
+                    return await response.json();
+                } catch (error) {
+                    console.error("Error in fetch:", error.message);
+                    return null;
+                }
+            },
 			// Use getActions to call a function within a fuction
 			exampleFunction: () => {
 				getActions().changeColor(0, "green");
 			},
 			// Registro de un usuario
-			postSignup: (data) => {
+			postSignup: async (data) => {
 				console.log(data)
-				fetch(process.env.BACKEND_URL + "/api/signup", {
+				const response = await getActions().fetchWithCheck(process.env.BACKEND_URL + "/api/signup", {
 					method: "POST",
-					body: JSON.stringify(data), // data can be `string` or {object}!
-
+					body: JSON.stringify(data),
 					headers: {
 						"Content-Type": "application/json"
 					}
 				})
-					.then(res => res.json())
-					.then(response => console.log("Success:", response))
-					.catch(error => console.error("Error:", error));
+				console.log("REPONSE DE SINGUP ", response)
+				if (response) {
+					setStore({ message: response.message });
+					return true;
+				}
+				else{
+					return false;
+				}
 			},
-			postLogin: (data) => {
+			postLogin: async (data) => {
 				console.log(data)
-				fetch(process.env.BACKEND_URL + "/api/login", {
+				const response = await getActions().fetchWithCheck(process.env.BACKEND_URL + "/api/login", {
 					method: "POST",
 					body: JSON.stringify(data), // data can be `string` or {object}!
 
@@ -47,10 +66,14 @@ const getState = ({ getStore, getActions, setStore }) => {
 					}
 					
 				})
-					.then(res => res.json())
-					.then(data_ => localStorage.setItem("accessToken", data_.Message.token))
-					.then(response => console.log(localStorage.getItem ('accessToken')))
-					.catch(error => console.error("Error:", error));
+				console.log("REPONSE DE SINGUP ", response)
+				if (response) {
+					setStore({ message: response.message });
+					return true;
+				}
+				else{
+					return false;
+				}
 			},
 
 			getMessage: async () => {
