@@ -24,21 +24,18 @@ export const Signup = () => {
 	const handleSubmit = async (event) => {
         event.preventDefault();
         const success = await actions.postSignup(data);
+		console.log("VALOR RETORNADO DEL FLLUX: ",success)
 		if (success) {
             if (store.message == "User created successfully") {
-                navigate("/login");
-				setError({message1: store.message});
-				
+                setError({message1: store.message});
+				navigate("/login");
             } 
             else {
                 setError({message1: store.message});
-				
             }
         } else {
 			setError({message1: store.message});
         }
-
-
     };
 
 	const info = event => {
@@ -46,11 +43,11 @@ export const Signup = () => {
 			...data,[event.target.name] : event.target.value
 		})
 	}
-
-
 	return (
 		<div className="container mb-2">
-			<h1> FORMULARIO DE REGISTRO</h1>
+			<div style={{display: 'flex',justifyContent:'center', alignItems:'center' }}>
+			<h1> Signup</h1>
+			</div>
 			<form>
 				<div className="row mb-6">
 					<label className="col-sm-2 col-form-label">Email</label>

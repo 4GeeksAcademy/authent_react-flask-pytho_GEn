@@ -22,11 +22,13 @@ export const Login = () => {
 	const handleSubmit = async (event) => {
         event.preventDefault();
         const success = await actions.postLogin(data);
+		console.log("success",success);
+            
 		if (success) {
-            if (store.message == "User created successfully") {
-                navigate("/privada");
-				setError({message1: store.message});
-				
+			console.log("respuesta de store.message",store.message )
+            if (store.message == "successful authentication") {
+				// setError({message1: store.message});
+				navigate("/private");
             } 
             else {
                 setError({message1: store.message});
@@ -34,12 +36,7 @@ export const Login = () => {
             }
         } else {
 			setError({message1: store.message});
-        }
-
-
-
-
-
+       }
     };
 
 	const info = event => {
@@ -52,7 +49,9 @@ export const Login = () => {
 
 	return (
 		<div className="container mb-2">
-			<h1> FORMULARIO DE INGRESO </h1>
+			<div style={{display: 'flex',justifyContent:'center', alignItems:'center' }}>
+				<h1> Login </h1>
+			</div>
 			<form>
 				<div className="row mb-6">
 					<label className="col-sm-2 col-form-label">Email</label>

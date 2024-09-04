@@ -7,7 +7,6 @@ from flask_migrate import Migrate
 from flask_swagger import swagger
 from api.utils import APIException, generate_sitemap
 from api.models import db, User
-import api.models as db_
 from api.routes import api
 from api.admin import setup_admin
 from api.commands import setup_commands
@@ -75,12 +74,12 @@ def Signup(data):
     else:
         user_result = db.session.execute(db.select(User).filter_by(email=new_user.email)).one_or_none()
         if user_result != None and user_result[0].email == new_user.email:
-            response_body = {"message": "Usuario ya existe"}
+            response_body = {"message": "User already exists"}
             return response_body
         else:
             db.session.add(new_user)
             db.session.commit()
-            response_body = {"message": "Usuario creado con Exito"}
+            response_body = {"message": "User created successfully"}
             return response_body
 
 
@@ -101,23 +100,24 @@ def Login(data):
             response_body = {"message": "Password incorrecto"}
             return response_body
         token = create_access_token(identity=user_result.id)
-        response_body = {"token": token}
+        response_body = {"token": token, "message": "successful authentication"}
         return response_body
 
-# @app.route('/private/<int:id>', methods=['GET'])
-# @jwt_required()
-def Private(id):
-    
-    #user_id = get_jwt_identity()
-    #print(id, user_id)
-    # if id != user_id : 
-    #     return jsonify({"message":"Usuario no autorizado"})
 
-    # user_result = db.session.execute(db.select(User).filter_by(id=user_id)).one_or_none()
-    user_result = db.session.execute(db.select(db_.User).filter_by(id=id)).one_or_none()
-    user_result = user_result[0]
-    print("valor de user_result",user_result )
-    return user_result
+def Private():
+    print("INGRESE EN APP")
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+
+    if user:
+        user_result = db.session.execute(db.select(User).filter_by(id=user_id)).one_or_none()
+        for u in user_result:
+            user_result=u.password
+    else:
+        return {"message":"User Doesn't Exits"}
+
+    response_body = {"Password" : user_result}
+    return response_body
 
 
 # any other endpoint will try to serve it like a static file
